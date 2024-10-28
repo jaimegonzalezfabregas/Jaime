@@ -1,5 +1,7 @@
 # Jaime's Artificial Inteligence and Machine learning Engine
 
+![Crates.io Version](https://img.shields.io/crates/v/jaime)
+
 J.a.i.m.e., pronounced as /hɑːɪmɛ/, is a all purpose ergonomic gradient descent engine. It can configure **ANY**\* and **ALL**\*\* models to find the best fit for your dataset. It will magicaly take care of the gradient computations with little effect on your coding style. 
 
 \* not only neuronal
