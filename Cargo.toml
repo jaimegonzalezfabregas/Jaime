@@ -1,12 +1,12 @@
 [package]
 name = "jaime"
-version = "0.1.1"
+version = "0.1.2"
 edition = '2021'
 authors = ["Jaime González Fábregas <jaimegonzalezfabregas@gmail.com>"]
-description = "Jaime's Artificial Inteligence and Machine learning Engine is an ergonomic all purpose gradient descent engine"
+description = "j.a.i.m.e. is an ergonomic all purpose gradient descent engine"
 readme = "README.md"
 repository = "https://github.com/jaimegonzalezfabregas/Jaime"
-license-file = "LICENSE.txt"
+license-file = "MIT"
 keywords = ["ai", "statistics"]
 
 [toolchain]
