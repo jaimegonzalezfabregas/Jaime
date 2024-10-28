@@ -1,0 +1,16 @@
+[package]
+name = "ia_engine"
+version = "0.1.0"
+edition = "2021"
+
+[toolchain]
+channel = "nightly"
+
+
+[dependencies]
+rand = "0.8.5"
+rayon = "1.10.0"
+indicatif = {version = "*", features = ["rayon"]}
+rand_chacha = "0.3.1"
+savefile = "0.17"
+savefile-derive = "0.17"
