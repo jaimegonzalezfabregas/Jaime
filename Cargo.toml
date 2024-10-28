@@ -6,7 +6,7 @@ authors = ["Jaime González Fábregas <jaimegonzalezfabregas@gmail.com>"]
 description = "j.a.i.m.e. is an ergonomic all purpose gradient descent engine"
 readme = "README.md"
 repository = "https://github.com/jaimegonzalezfabregas/Jaime"
-license-file = "MIT"
+license = "MIT"
 keywords = ["ai", "statistics"]
 
 [toolchain]
