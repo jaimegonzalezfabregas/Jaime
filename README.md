@@ -1,6 +1,6 @@
 # Jaime's Artificial Inteligence and Machine learning Engine
 
-Jaime, pronounced as /hɑːɪmɛ/, is a all purpose ergonomic gradient descent engine. It can configure **ANY**\* and **ALL**\*\* models to find the best fit for your dataset. It will magicaly take care of the gradient computations with little effect on your coding style. 
+J.a.i.m.e., pronounced as /hɑːɪmɛ/, is a all purpose ergonomic gradient descent engine. It can configure **ANY**\* and **ALL**\*\* models to find the best fit for your dataset. It will magicaly take care of the gradient computations with little effect on your coding style. 
 
 \* not only neuronal
 
@@ -19,13 +19,13 @@ If you are able to define a model this crate will happily apply [gradient descen
 
 # Examples
 
-To make sure this crate was as usable and performant as posible I've also implemented a few exercises that use its functions. They will be on github sortly.
+To make sure this crate was as usable and performant as posible I've also implemented a few exercises that use its functions. 
 
-- (Hello world)[https://github.com/jaimegonzalezfabregas/jaime_hello_world]
-- (Polinomial deduction)[]
-- Voronoi Image Aproximator
-- Xor neuronal network
-- MNIST neuronal network
+- [Hello world](https://github.com/jaimegonzalezfabregas/jaime_hello_world)
+- [Polinomial deduction](https://github.com/jaimegonzalezfabregas/jaime_polinomial)
+- [Voronoi Image Aproximator](https://github.com/jaimegonzalezfabregas/jaime_voronoi_image_aproximator)
+- Xor neuronal network (Comming soon)
+- [MNIST neuronal network](https://github.com/jaimegonzalezfabregas/jaime_mnist_perceptron)
 
 # Geeky internal wizardry
 
@@ -42,3 +42,7 @@ Comming soon, for now try having a look at the examples.
 # Contributing
 Yes please.
 Make a PR to this repo and I will happily merge it.
+
+# A note on optimization
+
+I heavily used [Samply](https://github.com/mstange/samply) for profiling during this project.
