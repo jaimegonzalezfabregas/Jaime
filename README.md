@@ -21,8 +21,8 @@ If you are able to define a model this crate will happily apply [gradient descen
 
 To make sure this crate was as usable and performant as posible I've also implemented a few exercises that use its functions. They will be on github sortly.
 
-- Hello world
-- Polinomial deduction
+- (Hello world)[https://github.com/jaimegonzalezfabregas/jaime_hello_world]
+- (Polinomial deduction)[]
 - Voronoi Image Aproximator
 - Xor neuronal network
 - MNIST neuronal network

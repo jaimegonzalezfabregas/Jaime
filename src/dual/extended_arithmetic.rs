@@ -1,6 +1,6 @@
 use crate::simd_arr::SimdArr;
 
-use super::{check_nan, Dual};
+use super::Dual;
 
 pub trait ExtendedArithmetic {
     fn sqrt(self) -> Self;
