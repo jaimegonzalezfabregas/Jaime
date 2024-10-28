@@ -1,3 +1,4 @@
+
 use std::array;
 use std::fs::OpenOptions;
 use std::io::{self, BufRead, Write};
