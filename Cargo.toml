@@ -1,6 +1,7 @@
 [package]
 name = "jaime"
 version = "0.1.0"
+edition = '2021'
 authors = ["Jaime González Fábregas <jaimegonzalezfabregas@gmail.com>"]
 description = "Jaime's Artificial Inteligence and Machine learning Engine is an ergonomic all purpose backpropagation engine"
 readme = "README.md"
