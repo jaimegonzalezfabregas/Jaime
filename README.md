@@ -12,8 +12,8 @@ J.a.i.m.e., pronounced as /hɑːɪmɛ/, is a all purpose ergonomic gradient desc
 - Output: For our purposes the output of our Model will be a vector of floating point numbers
 - Dataset: a set of input-output pairs. Jaime will reconfigure the model to aproximate the behabiour described in the dataset.
 - Model: a function that maps from input to ouput using a set of configuration parameters that define its behabiour. For our purposes small changes in the parameters should translate to small changes in the behabiour of the function. Examples of suitable models:
-    - Polinomial functions: Defined as `y = P_0 * x^0 + P_1 * x^1 + ... + P_n * x^n`. The vector `[x]` will be our input, the vector `[y]` will be our output, The vector `[P_0, P_1, ... ,P_2]` will be our parameter vector. An example of this crate for this precise case can be found [here]()
-    - Neuronal networks: In their most basic form they are defined as consecutive matrix multiplications with delinearization steps in between. The classical meaning of parameters, input and output for a NN matches the concepts used in this crate.
+    - Polinomial functions: Defined as `y = P_0 * x^0 + P_1 * x^1 + ... + P_n * x^n`. The vector `[x]` will be our input, the vector `[y]` will be our output, The vector `[P_0, P_1, ... ,P_2]` will be our parameter vector. An example of this crate for this precise case can be found [here](https://github.com/jaimegonzalezfabregas/jaime_polinomial)
+    - Neuronal networks: In their most basic form they are defined as consecutive matrix multiplications with delinearization steps in between. The classical meaning of parameters, input and output for a NN matches the concepts used in this crate.  An example of this crate for this precise case can be found [here](https://github.com/jaimegonzalezfabregas/jaime_mnist_perceptron)
 
 If you are able to define a model this crate will happily apply [gradient descent](https://en.wikipedia.org/wiki/Gradient_descent) to find some local minumum that aproximates the behabiour defined in the dataset.
 
@@ -26,6 +26,8 @@ To make sure this crate was as usable and performant as posible I've also implem
 - [Voronoi Image Aproximator](https://github.com/jaimegonzalezfabregas/jaime_voronoi_image_aproximator)
 - Xor neuronal network (Comming soon)
 - [MNIST neuronal network](https://github.com/jaimegonzalezfabregas/jaime_mnist_perceptron)
+
+If you belive you understanding of what my crate does is clear I encourage you to study the voronoi image aproximator.
 
 # Geeky internal wizardry
 
