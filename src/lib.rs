@@ -3,9 +3,9 @@
 
 //! # Overview
 //! 
-//! J.a.i.m.e., pronounced as /hɑːɪmɛ/, is a all purpose ergonomic gradient descent engine. It can configure **ANY** * and ALL ** models to find the best fit for your dataset. It will magicaly take care of the gradient computations with little effect on your coding style. 
-//! * not only neuronal
-//! ** derivability conditions apply 
+//! J.a.i.m.e., pronounced as /hɑːɪmɛ/, is a all purpose ergonomic gradient descent engine. It can configure **ANY** \* and **ALL**\*\* models to find the best fit for your dataset. It will magicaly take care of the gradient computations with little effect on your coding style. 
+//! \* not only neuronal
+//! \*\* derivability conditions apply 
 //! 
 //! # Basic example
 //! 
