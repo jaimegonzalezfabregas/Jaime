@@ -2,6 +2,8 @@
 
 ![Crates.io Version](https://img.shields.io/crates/v/jaime)
 ![Passing tests](https://github.com/jaimegonzalezfabregas/Jaime/actions/workflows/rust.yml/badge.svg)
+![docs.rs](https://img.shields.io/docsrs/jaime)
+
 
 J.a.i.m.e., pronounced as /hɑːɪmɛ/, is a all purpose ergonomic gradient descent engine. It can configure **ANY**\* and **ALL**\*\* models to find the best fit for your dataset. It will magicaly take care of the gradient computations with little effect on your coding style. 
 
