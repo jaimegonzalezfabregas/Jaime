@@ -16,12 +16,15 @@ use rand_chacha::ChaCha8Rng;
 use rayon::prelude::*;
 use std::fmt::Debug;
 
+/// A data point holds the desired output for a given input. A colection of datapoints is a dataset. A dataset defines the desired behabiour of the trainable model.
+
 #[derive(Debug, Clone, Copy)]
 pub struct DataPoint<const P: usize, const I: usize, const O: usize> {
     pub input: [f32; I],
     pub output: [f32; O],
 }
 
+/// Helper 0-data type to pass a generic const value in a more convenient way. It is used to define when the hybrid SimdArr goes from storing the data sparsely to storing the data densely.
 pub struct CriticalityCue<const CRITICALITY: usize>();
 
 fn datapoint_cost<
@@ -127,9 +130,16 @@ fn dataset_cost<
     accumulator
 }
 
+/// The gradient descent algorithm needs to apply the graident to the parameter vector to progress. This operation is done withing a callback so that the user can have some control over the parameter values (clamping them, adding noise or any other usecase specific requirements). 
+/// When that ammount of control is not required this default param translator can be used as the callback.
+
 pub fn default_param_translator<const P: usize>(params: &[f32; P], vector: &[f32; P]) -> [f32; P] {
     array::from_fn(|i| params[i] + vector[i])
 }
+
+/// The gradient descent algorithm needs to apply the graident to the parameter vector to progress. This operation is done withing a callback so that the user can have some control over the parameter values (clamping them, adding noise or any other usecase specific requirements). 
+/// This is an example of the clamping usecase mentioned in the "default_param_translator" description
+
 
 pub fn param_translator_with_bounds<const P: usize, const MAX: isize, const MIN: isize>(
     params: &[f32; P],

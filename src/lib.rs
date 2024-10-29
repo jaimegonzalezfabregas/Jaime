@@ -69,6 +69,9 @@ extern crate rand_chacha;
 extern crate rand;
 extern crate rayon;
 
+/// INTERNAL forward mode automatic derivation engine.
 pub mod dual;
+/// INTERNAL Implementation of arrays of floats that can apply the same operation to all the elements at the same time
 pub mod simd_arr;
+/// User facing gradient descent implementation
 pub mod trainer;

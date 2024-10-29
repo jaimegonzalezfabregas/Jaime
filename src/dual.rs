@@ -7,8 +7,14 @@ mod tests;
 
 use crate::simd_arr::SimdArr;
 
-#[derive(Clone, Debug)]
+/// The internal float-oid that implements forward mode automatic diferentiation. It implements many of the traits a float number would, that way you can use it in its place on a generic function. This is an internal data structure, if you are using it on your code its likely you are doing something wrong.
+/// - The generic P is the ammount of parameters the model needs.
+/// - The generic S is the SimdArr implementation that will be used as the dual part
+/// The dual part of the dual number is not a single float, but an array of them. This is because we need to keep track of many derivatives for each of the parameters of the model. When the parameters are inputed in the model their dual part is set to all 0.0 but a single 1.0 in the position matching their index. 
+/// 
+/// Dual numbers are used throughout the full gradient computation. From the input of the model to the cost calculation. That way the cost's dual array will contain the gradient, meaning, the partial derivative of the cost function for the nth parameter in the nth position of the array.
 
+#[derive(Clone, Debug)]
 pub struct Dual<const P: usize, S: SimdArr<P>> {
     real: f32,
     sigma: S,
