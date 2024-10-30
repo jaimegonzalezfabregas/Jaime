@@ -4,13 +4,15 @@
 //! # Overview
 //! 
 //! J.a.i.m.e., pronounced as /hɑːɪmɛ/, is a all purpose ergonomic gradient descent engine. It can configure **ANY** \* and **ALL**\*\* models to find the best fit for your dataset. It will magicaly take care of the gradient computations with little effect on your coding style. 
+//!
 //! \* not only neuronal
+//!
 //! \*\* derivability conditions apply 
 //! 
 //! # Basic example
 //! 
 //!  ```
-//!#![feature(generic_arg_infer)] // this will save a lot of time and make your code much more redeable
+//!#![feature(generic_arg_infer)] // this will save a lot of time and make your code much more readable
 //!
 //!use std::ops::Mul; // this will allow us to specify the properties of our "float-oid"
 //!
@@ -29,8 +31,8 @@
 //!}
 //!
 //!fn main() {
+//!    // define the desired behabiour as a dataset
 //!    let dataset = vec![
-//!        // define the desired behabiour as a dataset
 //!        DataPoint {
 //!            input: [1.],
 //!            output: [2.],
@@ -63,6 +65,9 @@
 //!}
 //!  ```
 //! download and compile this example from [the github repo](https://github.com/jaimegonzalezfabregas/jaime_hello_world)
+//! 
+//! # Further reading
+//! A deeper explanation of the usage of this crate can be found in the Traier struct [documentation](https://docs.rs/jaime/latest/jaime/trainer/struct.Trainer.html)
 
 extern crate indicatif;
 extern crate rand_chacha;
