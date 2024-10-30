@@ -1,4 +1,3 @@
-
 use std::array;
 use std::fs::OpenOptions;
 use std::io::{self, BufRead, Write};
@@ -130,16 +129,15 @@ fn dataset_cost<
     accumulator
 }
 
-/// The gradient descent algorithm needs to apply the graident to the parameter vector to progress. This operation is done withing a callback so that the user can have some control over the parameter values (clamping them, adding noise or any other usecase specific requirements). 
+/// The gradient descent algorithm needs to apply the graident to the parameter vector to progress. This operation is done withing a callback so that the user can have some control over the parameter values (clamping them, adding noise or any other usecase specific requirements).
 /// When that ammount of control is not required this default param translator can be used as the callback.
 
 pub fn default_param_translator<const P: usize>(params: &[f32; P], vector: &[f32; P]) -> [f32; P] {
     array::from_fn(|i| params[i] + vector[i])
 }
 
-/// The gradient descent algorithm needs to apply the graident to the parameter vector to progress. This operation is done withing a callback so that the user can have some control over the parameter values (clamping them, adding noise or any other usecase specific requirements). 
+/// The gradient descent algorithm needs to apply the graident to the parameter vector to progress. This operation is done withing a callback so that the user can have some control over the parameter values (clamping them, adding noise or any other usecase specific requirements).
 /// This is an example of the clamping usecase mentioned in the "default_param_translator" description
-
 
 pub fn param_translator_with_bounds<const P: usize, const MAX: isize, const MIN: isize>(
     params: &[f32; P],
@@ -148,8 +146,13 @@ pub fn param_translator_with_bounds<const P: usize, const MAX: isize, const MIN:
     array::from_fn(|i| (params[i] + vector[i]).min(MAX as f32).max(MIN as f32))
 }
 
-#[derive(Clone)]
+/// This struct manages the training lifecicle, it stores the trainable params and the training configuration.
+/// - the generic P is the amount of parameters in the model
+/// - the generic I is the amount of elements in the model input
+/// - the generic O is the amount of elements in the model output
+/// - the generic ExtraData is the type of the extra data parameter of the model. It can be used to alter manualy the model behabiour during training or to pass configuration data
 
+#[derive(Clone)]
 pub struct Trainer<
     const P: usize,
     const I: usize,
@@ -180,6 +183,7 @@ impl<
         ParamTranslate: Fn(&[f32; P], &[f32; P]) -> [f32; P] + Clone,
     > Trainer<P, I, O, ExtraData, DenseSimd<P>, FG, F, ParamTranslate>
 {
+    /// Creates a Trainer instance that will use dense representation for the dual part. This can be ineficient for big parameter models because many of the elements of the dual part will be 0. This may be usefull for very small parameter numbers, but for any serious endeavor I would recomend using the new_hybrid function.
     pub fn new_dense(
         trainable: F,
         trainable_gradient: FG,
@@ -221,6 +225,7 @@ impl<
         ParamTranslate: Fn(&[f32; P], &[f32; P]) -> [f32; P] + Clone,
     > Trainer<P, I, O, ExtraData, HybridSimd<P, CRITIALITY>, FG, F, ParamTranslate>
 {
+    /// Creates a Trainer instance that will use sparse representation for the dual part when the amount of ceros is big. This tries to get the advantages of the dense representation when few ceros are present and the sparse representation when many ceros are present. The first parameter is the number of non cero elements that will trigger the translation from the sparse representation to dense representation. If you are experiencing slow training times try fiddleing with the CRITiCALITY value. With a CRITICALITY of 0 the trainer will behave exactly the same as a trainer created using the new_dense function with a small overhead
     pub fn new_hybrid(
         _: CriticalityCue<CRITIALITY>,
         trainable: F,
@@ -256,10 +261,12 @@ impl<
         ParamTranslate: Fn(&[f32; P], &[f32; P]) -> [f32; P] + Sync + Clone,
     > Trainer<P, I, O, ExtraData, S, FG, F, ParamTranslate>
 {
+    /// Retrieve the parameters at any point during the training process
     pub fn get_model_params(&self) -> [f32; P] {
         self.params.clone().map(|e| e.get_real())
     }
 
+    /// Store parameters into a file
     pub fn save(&self, file_path: &str) -> std::io::Result<()> {
         let mut file = OpenOptions::new()
             .create(true)
@@ -274,6 +281,7 @@ impl<
         Ok(())
     }
 
+    /// Load parameters from file. A lot of assumptions about the file format are made, only files saved from a similar trainer are guarantied to work.
     pub fn load(&mut self, file_path: &str) -> std::io::Result<()> {
         let file = OpenOptions::new()
             .write(true)
@@ -298,6 +306,7 @@ impl<
         Ok(())
     }
 
+    /// Introduce random variations in the parameters. Can be usefull to scape local minima.
     pub fn shake(&mut self, factor: f32) {
         for i in 0..P {
             self.params[i]
@@ -305,8 +314,9 @@ impl<
         }
     }
 
-    // TODO partition the dataset
-
+    /// given a dataset and a subdataset size this function will calculate the gradient per subdataset making the corresponding steps in the way. It will call train_step_asintotic_search with the subdataset as the dir_dataset and the full dataset as the full_dataset.
+    /// - the PARALELIZE generic will switch between singlethread or paraleloperations (using rayon)  
+    /// - the VERBOSE generic will print out progress updates
     pub fn train_stocastic_step<
         const PARALELIZE: bool,
         const VERBOSE: bool,
@@ -332,10 +342,12 @@ impl<
         ret
     }
 
-    // TODO adam
-
-    // TODO return a proper error when NaN apears
-
+    /// Given a dataset it will find the gradient and follow it. The "asintotic" means that will start trying to step in the direction of the gradient a lenght of 1. If the cost has gone up it will try half of the previous lenght untill the cost goes down or the lenght gets to a very very low number.
+    /// This function will take adventage of the generalizationability of our model function. It will calculate the gradient using Dual numbers and the dir_dataset (dir is short for direction) but will calculate the cost using only floats and the full_dataset. This second calculation can be many many times faster than the first one, allowing us to test multiple step lenghts very quickly. This gradient-cost separation also allows us to get an aproximation of the gradient faster than calculating the real one but allows us to always step in the right direction (even if the gradient isnt perfect)
+    /// - the PARALELIZE generic will switch between singlethread or paraleloperations (using rayon)  
+    /// - the VERBOSE generic will print out progress updates
+    /// - the dir_dataset parameter holds the dataset used to find the gradient
+    /// - the full_dataset parameter holds the dataset used to find the cost (usualy bigger, as the cost calculation is many many times faster)
     pub fn train_step_asintotic_search<
         'a,
         'b,
@@ -420,11 +432,13 @@ impl<
         return true;
     }
 
-    // TODO
+    /// Will return the last computed cost (if any has been computed yet)
 
     pub fn get_last_cost(&self) -> Option<f32> {
         self.last_cost
     }
+
+    /// Will call the model for you, as an alternative of using this function you can also take the parameters out with get_model_params and call it yourself
 
     pub fn eval(&self, input: &[f32; I]) -> [f32; O] {
         (self.model)(

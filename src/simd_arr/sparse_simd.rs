@@ -1,5 +1,6 @@
 use std::ops::{Index, IndexMut};
 
+/// INTERNAL something close to an implementation of SimdArr (its used through hybrid_simd because some operations can fail if we run out of space) using a sparse representation. It only stores the non cero elements and their index. The time complexity of all operations is at most linear over the number of elements.
 #[derive(Clone, Debug, PartialEq)]
 pub struct VecSparseSimd<const CAPACITY: usize, const VIRTUALSIZE: usize> {
     data_index: Vec<usize>,

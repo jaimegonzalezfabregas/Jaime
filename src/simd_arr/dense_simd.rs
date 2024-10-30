@@ -2,6 +2,7 @@ use std::ops::{Index, IndexMut};
 
 use super::SimdArr;
 
+/// INTERNAL an implementation of SimdArr using a dense representation (storing every value in an array). The time complexity of all operations is at most linear over the capacity.
 #[derive(Clone, Debug)]
 pub struct DenseSimd<const S: usize>([f32; S]);
 
