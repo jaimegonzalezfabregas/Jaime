@@ -1,6 +1,6 @@
 [package]
 name = "jaime"
-version = "0.1.6"
+version = "1.0.0"
 edition = '2021'
 authors = ["Jaime González Fábregas <jaimegonzalezfabregas@gmail.com>"]
 description = "j.a.i.m.e. is an ergonomic all purpose gradient descent engine"

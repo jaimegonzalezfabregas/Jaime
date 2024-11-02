@@ -3,21 +3,32 @@ use std::io::{self, BufRead, Write};
 use std::ops::{Add, Div, Sub};
 
 use crate::dual::extended_arithmetic::ExtendedArithmetic;
-use gradient_descent_trainer::DataPoint;
 use indicatif::ParallelProgressIterator;
 use rayon::prelude::*;
 use std::fmt::Debug;
 
-pub mod gradient_descent_trainer;
+pub mod adam_trainer;
+pub mod asymptotic_gradient_descent_trainer;
+
+/// A data point holds the desired output for a given input. A colection of datapoints is a dataset. A dataset defines the desired behabiour of the trainable model.
+
+#[derive(Debug, Clone, Copy)]
+pub struct DataPoint<const P: usize, const I: usize, const O: usize> {
+    pub input: [f32; I],
+    pub output: [f32; O],
+}
 
 pub trait Trainer<const P: usize, const I: usize, const O: usize> {
     /// Will return the last computed cost (if any has been computed yet)
     fn get_last_cost(&self) -> Option<f32>;
 
+    /// Will call the model for you, as an alternative of using this function you can also take the parameters out with get_model_params and call it yourself
     fn eval(&self, input: &[f32; I]) -> [f32; O];
 
+    /// Retrieve the parameters at any point during the training process
     fn get_model_params(&self) -> [f32; P];
 
+    /// Set the parameters at any point during the training process
     fn set_model_params(&mut self, parameters: [f32; P]);
 
     fn train_step<
@@ -37,7 +48,9 @@ pub trait Trainer<const P: usize, const I: usize, const O: usize> {
         full_dataset: E,
         dir_dataset_len: usize,
         full_dataset_len: usize,
-    ) -> bool;
+    );
+
+    fn found_local_minima(&self) -> bool;
 
     /// Given a dataset and a subdataset size this function will calculate the gradient per subdataset making the corresponding steps in the way. It will call train_step_asintotic_search with the subdataset as the dir_dataset and the full dataset as the full_dataset.
     /// - The PARALELIZE generic will switch between singlethread or paraleloperations (using rayon)  
@@ -51,10 +64,9 @@ pub trait Trainer<const P: usize, const I: usize, const O: usize> {
         dataset: &Vec<DataPoint<P, I, O>>,
         subdataset_size: usize,
         inter_step_callback: CB,
-    ) -> bool {
-        let mut ret = false;
+    ) {
         for (i, sub_dataset) in dataset.chunks(subdataset_size).enumerate() {
-            ret |= self.train_step::<PARALELIZE, VERBOSE, _, _>(
+            self.train_step::<PARALELIZE, VERBOSE, _, _>(
                 sub_dataset,
                 dataset,
                 sub_dataset.len(),
@@ -62,8 +74,6 @@ pub trait Trainer<const P: usize, const I: usize, const O: usize> {
             );
             inter_step_callback(i, self);
         }
-
-        ret
     }
 
     /// Introduce random variations in the parameters. Can be usefull to scape local minima.

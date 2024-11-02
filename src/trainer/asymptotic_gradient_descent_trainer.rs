@@ -8,17 +8,8 @@ use crate::simd_arr::SimdArr;
 use rand::{Rng, SeedableRng};
 use rand_chacha::ChaCha8Rng;
 use rayon::prelude::*;
-use std::fmt::Debug;
 
-use super::{dataset_cost, Trainer};
-
-/// A data point holds the desired output for a given input. A colection of datapoints is a dataset. A dataset defines the desired behabiour of the trainable model.
-
-#[derive(Debug, Clone, Copy)]
-pub struct DataPoint<const P: usize, const I: usize, const O: usize> {
-    pub input: [f32; I],
-    pub output: [f32; O],
-}
+use super::{dataset_cost, DataPoint, Trainer};
 
 /// The gradient descent algorithm needs to apply the graident to the parameter vector to progress. This operation is done withing a callback so that the user can have some control over the parameter values (clamping them, adding noise or any other usecase specific requirements).
 /// When that ammount of control is not required this default param translator can be used as the callback.
@@ -44,7 +35,7 @@ pub fn param_translator_with_bounds<const P: usize, const MAX: isize, const MIN:
 /// - The generic ExtraData is the type of the extra data parameter of the model. It can be used to alter manualy the model behabiour during training or to pass configuration data
 
 #[derive(Clone)]
-pub struct GradientDescentTrainer<
+pub struct AsymptoticGradientDescentTrainer<
     const P: usize,
     const I: usize,
     const O: usize,
@@ -60,6 +51,7 @@ pub struct GradientDescentTrainer<
     param_translator: ParamTranslate,
     extra_data: ExtraData,
     last_cost: Option<f32>,
+    found_local_minima: bool,
 }
 
 impl<
@@ -72,7 +64,7 @@ impl<
             + Clone,
         F: Fn(&[f32; P], &[f32; I], &ExtraData) -> [f32; O] + Sync + Clone,
         ParamTranslate: Fn(&[f32; P], &[f32; P]) -> [f32; P] + Clone,
-    > GradientDescentTrainer<P, I, O, ExtraData, DenseSimd<P>, FG, F, ParamTranslate>
+    > AsymptoticGradientDescentTrainer<P, I, O, ExtraData, DenseSimd<P>, FG, F, ParamTranslate>
 {
     /// Creates a Trainer instance that will use dense representation for the dual part. This can be ineficient for big parameter models because many of the elements of the dual part will be 0. This may be usefull for very small parameter numbers, but for any serious endeavor I would recomend using the new_hybrid function.
     pub fn new_dense(
@@ -81,11 +73,6 @@ impl<
         param_translator: ParamTranslate,
         extra_data: ExtraData,
     ) -> Self {
-        rayon::ThreadPoolBuilder::new()
-            .stack_size(1 * 1024 * 1024 * 1024)
-            .build_global()
-            .unwrap();
-
         let mut rng = ChaCha8Rng::seed_from_u64(2);
 
         Self {
@@ -95,6 +82,7 @@ impl<
             param_translator,
             extra_data,
             last_cost: None,
+            found_local_minima: false,
         }
     }
 }
@@ -114,7 +102,17 @@ impl<
             + Clone,
         F: Fn(&[f32; P], &[f32; I], &ExtraData) -> [f32; O] + Sync + Clone,
         ParamTranslate: Fn(&[f32; P], &[f32; P]) -> [f32; P] + Clone,
-    > GradientDescentTrainer<P, I, O, ExtraData, HybridSimd<P, CRITIALITY>, FG, F, ParamTranslate>
+    >
+    AsymptoticGradientDescentTrainer<
+        P,
+        I,
+        O,
+        ExtraData,
+        HybridSimd<P, CRITIALITY>,
+        FG,
+        F,
+        ParamTranslate,
+    >
 {
     /// Creates a Trainer instance that will use sparse representation for the dual part when the amount of ceros is big. This tries to get the advantages of the dense representation when few ceros are present and the sparse representation when many ceros are present. The first parameter is the number of non cero elements that will trigger the translation from the sparse representation to dense representation. If you are experiencing slow training times try fiddleing with the CRITiCALITY value. With a CRITICALITY of 0 the trainer will behave exactly the same as a trainer created using the new_dense function with a small overhead
     pub fn new_hybrid(
@@ -124,10 +122,6 @@ impl<
         param_translator: ParamTranslate,
         extra_data: ExtraData,
     ) -> Self {
-        rayon::ThreadPoolBuilder::new()
-            .stack_size(1 * 1024 * 1024 * 1024)
-            .build_global();
-
         let mut rng = ChaCha8Rng::seed_from_u64(2);
 
         Self {
@@ -137,6 +131,7 @@ impl<
             param_translator,
             extra_data,
             last_cost: None,
+            found_local_minima: false,
         }
     }
 }
@@ -149,29 +144,9 @@ impl<
         S: SimdArr<P>,
         FG: Fn(&[Dual<P, S>; P], &[f32; I], &ExtraData) -> [Dual<P, S>; O] + Sync + Clone,
         F: Fn(&[f32; P], &[f32; I], &ExtraData) -> [f32; O] + Sync + Clone,
-        ParamTranslate: Fn(&[f32; P], &[f32; P]) -> [f32; P] + Sync + Clone,
-    > GradientDescentTrainer<P, I, O, ExtraData, S, FG, F, ParamTranslate>
-{
-    
-}
-
-impl<
-        const P: usize,
-        const I: usize,
-        const O: usize,
-        const CRITIALITY: usize,
-        ExtraData: Sync + Clone,
-        FG: Fn(
-                &[Dual<P, HybridSimd<P, CRITIALITY>>; P],
-                &[f32; I],
-                &ExtraData,
-            ) -> [Dual<P, HybridSimd<P, CRITIALITY>>; O]
-            + Sync
-            + Clone,
-        F: Fn(&[f32; P], &[f32; I], &ExtraData) -> [f32; O] + Sync + Clone,
         ParamTranslate: Fn(&[f32; P], &[f32; P]) -> [f32; P] + Clone,
     > Trainer<P, I, O>
-    for GradientDescentTrainer<P, I, O, ExtraData, HybridSimd<P, CRITIALITY>, FG, F, ParamTranslate>
+    for AsymptoticGradientDescentTrainer<P, I, O, ExtraData, S, FG, F, ParamTranslate>
 {
     fn get_last_cost(&self) -> Option<f32> {
         self.last_cost
@@ -200,7 +175,7 @@ impl<
         full_dataset: E,
         dir_dataset_len: usize,
         full_dataset_len: usize,
-    ) -> bool {
+    ) {
         let t0 = Instant::now();
 
         let cost = dataset_cost::<VERBOSE, false, PARALELIZE, _, _, _, _, _, _, _>(
@@ -222,10 +197,10 @@ impl<
         let mut factor = 1.;
 
         let raw_gradient = cost.get_gradient();
-        let gradient_size: f32 = raw_gradient
-            .iter()
-            .fold(0., |acc, elm| acc + (elm * elm))
-            .max(1e-30);
+        let gradient_size: f32 = f32::max(
+            raw_gradient.iter().fold(0., |acc, elm| acc + (elm * elm)),
+            1e-30,
+        );
 
         let unit_gradient = array::from_fn(|i| raw_gradient[i] / gradient_size.sqrt());
         let og_parameters = array::from_fn(|i| self.params[i].get_real());
@@ -253,7 +228,8 @@ impl<
             factor *= 0.7;
 
             if factor < 1e-10 {
-                return false;
+                self.found_local_minima = true;
+                return;
             }
         }
 
@@ -263,11 +239,7 @@ impl<
                 fast_full_cost, self.last_cost.unwrap(), factor, fast_full_cost - self.last_cost.unwrap(), t0.elapsed().as_secs_f32()
             );
         }
-
-        return true;
     }
-
-    /// Will call the model for you, as an alternative of using this function you can also take the parameters out with get_model_params and call it yourself
 
     fn eval(&self, input: &[f32; I]) -> [f32; O] {
         (self.model)(
@@ -277,7 +249,6 @@ impl<
         )
     }
 
-    /// Retrieve the parameters at any point during the training process
     fn get_model_params(&self) -> [f32; P] {
         self.params.clone().map(|e| e.get_real())
     }
@@ -288,5 +259,9 @@ impl<
             i += 1;
             Dual::new_param(p, i - 1)
         });
+    }
+
+    fn found_local_minima(&self) -> bool {
+        self.found_local_minima
     }
 }
