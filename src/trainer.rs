@@ -1,3 +1,4 @@
+use std::array;
 use std::fs::OpenOptions;
 use std::io::{self, BufRead, Write};
 use std::ops::{Add, Div, Sub};
@@ -9,6 +10,7 @@ use std::fmt::Debug;
 
 pub mod adam_trainer;
 pub mod asymptotic_gradient_descent_trainer;
+pub mod genetic_trainer;
 
 /// A data point holds the desired output for a given input. A colection of datapoints is a dataset. A dataset defines the desired behabiour of the trainable model.
 
@@ -48,6 +50,7 @@ pub trait Trainer<const P: usize, const I: usize, const O: usize> {
         full_dataset: E,
         dir_dataset_len: usize,
         full_dataset_len: usize,
+        learning_rate: f32,
     );
 
     fn found_local_minima(&self) -> bool;
@@ -64,6 +67,7 @@ pub trait Trainer<const P: usize, const I: usize, const O: usize> {
         dataset: &Vec<DataPoint<P, I, O>>,
         subdataset_size: usize,
         inter_step_callback: CB,
+        learning_rate: f32,
     ) {
         for (i, sub_dataset) in dataset.chunks(subdataset_size).enumerate() {
             self.train_step::<PARALELIZE, VERBOSE, _, _>(
@@ -71,6 +75,7 @@ pub trait Trainer<const P: usize, const I: usize, const O: usize> {
                 dataset,
                 sub_dataset.len(),
                 dataset.len(),
+                learning_rate,
             );
             inter_step_callback(i, self);
         }
@@ -233,4 +238,21 @@ fn dataset_cost<
     accumulator = accumulator / dataset_len as f32;
 
     accumulator
+}
+
+/// The gradient descent algorithm needs to apply the graident to the parameter vector to progress. This operation is done withing a callback so that the user can have some control over the parameter values (clamping them, adding noise or any other usecase specific requirements).
+/// When that ammount of control is not required this default param translator can be used as the callback.
+
+pub fn default_param_translator<const P: usize>(params: &[f32; P], vector: &[f32; P]) -> [f32; P] {
+    array::from_fn(|i| params[i] + vector[i])
+}
+
+/// The gradient descent algorithm needs to apply the graident to the parameter vector to progress. This operation is done withing a callback so that the user can have some control over the parameter values (clamping them, adding noise or any other usecase specific requirements).
+/// This is an example of the clamping usecase mentioned in the "default_param_translator" description
+
+pub fn param_translator_with_bounds<const P: usize, const MAX: isize, const MIN: isize>(
+    params: &[f32; P],
+    vector: &[f32; P],
+) -> [f32; P] {
+    array::from_fn(|i| (params[i] + vector[i]).min(MAX as f32).max(MIN as f32))
 }

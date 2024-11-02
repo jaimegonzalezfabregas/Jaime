@@ -17,10 +17,8 @@
 //!use std::ops::Mul; // this will allow us to specify the properties of our "float-oid"
 //!
 //!use jaime::trainer::{
-//!    asymptotic_gradient_descent_trainer::{
-//!        default_param_translator, AsymptoticGradientDescentTrainer,
-//!    },
-//!    DataPoint, Trainer,
+//!    asymptotic_gradient_descent_trainer::AsymptoticGradientDescentTrainer,
+//!    default_param_translator, DataPoint, Trainer,
 //!};
 //!
 //!// this is the model, Y = X*P, where P is the parameter, X the input and Y the output
@@ -53,7 +51,13 @@
 //!        AsymptoticGradientDescentTrainer::new_dense(direct, direct, default_param_translator, ());
 //!    // the function train_step_asintotic_search will step towards the local minimum. When the local minimum is found it will return false and the loop will exit.
 //!    while !trainer.found_local_minima() {
-//!        trainer.train_step::<false, false, _, _>(&dataset, &dataset, dataset.len(), dataset.len());
+//!        trainer.train_step::<false, false, _, _>(
+//!            &dataset,
+//!            &dataset,
+//!            dataset.len(),
+//!            dataset.len(),
+//!            1.,
+//!        );
 //!
 //!        println!("{:?}", trainer.get_model_params());
 //!    }

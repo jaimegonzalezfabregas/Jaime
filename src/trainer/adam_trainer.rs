@@ -156,6 +156,7 @@ impl<
         full_dataset: E,
         dir_dataset_len: usize,
         full_dataset_len: usize,
+        learning_rate: f32,
     ) {
         let t0 = Instant::now();
 
@@ -188,7 +189,6 @@ impl<
         let v_hat: [f32; P] = array::from_fn(|i| self.v[i] / (1.0 - 0.999_f32.powi(self.t as i32)));
 
         // Update parameters
-        let learning_rate = 0.001; // You can adjust this learning rate
         let gradient = array::from_fn(|i| -learning_rate * m_hat[i] / (v_hat[i].sqrt() + 1e-8)); // epsilon = 1e-8
 
         let og_parameters = array::from_fn(|i| self.params[i].get_real());

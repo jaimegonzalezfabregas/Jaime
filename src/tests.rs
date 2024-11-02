@@ -5,10 +5,8 @@ mod polinomial_test {
 
     use crate::trainer::{
         adam_trainer::AdamTrainer,
-        asymptotic_gradient_descent_trainer::{
-            default_param_translator, AsymptoticGradientDescentTrainer,
-        },
-        DataPoint, Trainer,
+        asymptotic_gradient_descent_trainer::AsymptoticGradientDescentTrainer,
+        default_param_translator, genetic_trainer::GeneticTrainer, DataPoint, Trainer,
     };
 
     fn base_func(x: f32) -> f32 {
@@ -19,28 +17,48 @@ mod polinomial_test {
     }
 
     #[test]
+    fn genetic_polinomial_test() {
+        polinomial_test(
+            &mut GeneticTrainer::<_, _, _, 100, 5, _, _, _>::new(
+                polinomial::<6, _>,
+                default_param_translator,
+                (),
+                0.0001,
+                10,
+            ),
+            0.1,
+        );
+    }
+
+    #[test]
     fn gradient_descent_polinomial_test() {
-        polinomial_test(&mut AsymptoticGradientDescentTrainer::new_dense(
-            polinomial::<6, _>,
-            polinomial::<6, _>,
-            default_param_translator,
-            (),
-        ));
+        polinomial_test(
+            &mut AsymptoticGradientDescentTrainer::new_dense(
+                polinomial::<6, _>,
+                polinomial::<6, _>,
+                default_param_translator,
+                (),
+            ),
+            1.,
+        );
     }
 
     #[test]
     fn adam_polinomial_test() {
-        polinomial_test(&mut AdamTrainer::new_dense(
-            polinomial::<6, _>,
-            polinomial::<6, _>,
-            default_param_translator,
-            (),
-            0.0001,
-            10,
-        ));
+        polinomial_test(
+            &mut AdamTrainer::new_dense(
+                polinomial::<6, _>,
+                polinomial::<6, _>,
+                default_param_translator,
+                (),
+                0.0001,
+                10,
+            ),
+            0.001,
+        );
     }
 
-    fn polinomial_test<T: Trainer<6, 1, 1>>(trainer: &mut T) {
+    fn polinomial_test<T: Trainer<6, 1, 1>>(trainer: &mut T, learning_rate: f32) {
         let mut complexity = 0.;
 
         while complexity < 1. {
@@ -52,6 +70,7 @@ mod polinomial_test {
                     &dataset,
                     dataset.len(),
                     dataset.len(),
+                    learning_rate,
                 )
             }
 

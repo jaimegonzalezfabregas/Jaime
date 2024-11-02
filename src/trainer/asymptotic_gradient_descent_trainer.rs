@@ -11,22 +11,7 @@ use rayon::prelude::*;
 
 use super::{dataset_cost, DataPoint, Trainer};
 
-/// The gradient descent algorithm needs to apply the graident to the parameter vector to progress. This operation is done withing a callback so that the user can have some control over the parameter values (clamping them, adding noise or any other usecase specific requirements).
-/// When that ammount of control is not required this default param translator can be used as the callback.
 
-pub fn default_param_translator<const P: usize>(params: &[f32; P], vector: &[f32; P]) -> [f32; P] {
-    array::from_fn(|i| params[i] + vector[i])
-}
-
-/// The gradient descent algorithm needs to apply the graident to the parameter vector to progress. This operation is done withing a callback so that the user can have some control over the parameter values (clamping them, adding noise or any other usecase specific requirements).
-/// This is an example of the clamping usecase mentioned in the "default_param_translator" description
-
-pub fn param_translator_with_bounds<const P: usize, const MAX: isize, const MIN: isize>(
-    params: &[f32; P],
-    vector: &[f32; P],
-) -> [f32; P] {
-    array::from_fn(|i| (params[i] + vector[i]).min(MAX as f32).max(MIN as f32))
-}
 
 /// This struct manages the training lifecicle, it stores the trainable params and the training configuration.
 /// - The generic P is the amount of parameters in the model
@@ -175,6 +160,7 @@ impl<
         full_dataset: E,
         dir_dataset_len: usize,
         full_dataset_len: usize,
+        learning_rate: f32,
     ) {
         let t0 = Instant::now();
 
@@ -194,7 +180,7 @@ impl<
             &self.extra_data,
         );
 
-        let mut factor = 1.;
+        let mut factor = learning_rate;
 
         let raw_gradient = cost.get_gradient();
         let gradient_size: f32 = f32::max(

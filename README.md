@@ -32,6 +32,8 @@ To make sure this crate was as usable and performant as posible I've also implem
 - Xor neuronal network (Comming soon)
 - [MNIST neuronal network](https://github.com/jaimegonzalezfabregas/jaime_mnist_perceptron)
 
+- **WIP** Asteroid shape deduction
+
 If you belive you understanding of what my crate does is clear I encourage you to study the voronoi image aproximator.
 
 # Geeky internal wizardry
