@@ -36,11 +36,24 @@ If you belive you understanding of what my crate does is clear I encourage you t
 
 # Geeky internal wizardry
 
+## Gradient calculation
+
 If you are a little math savy and know how gradient descent works you may be wondering how am I able to do the partial derivatives for the parameters without knowing beforehand what operations will the model perform. The solution relies on [Forward Mode Automatic Differentiation](https://jameshfisher.com/2024/04/02/automatic-differentiation-with-dual-numbers/) using dual numbers. Jaime will require you to define a generic function that manipulates a vector of float-oids and returns a vector of float-oids. That function will later be instanciated with a custom dual number type, that will allow me hijack the mathematic operations and keep track of the necesary extra data.
 
 Rust, specificaly rust's generics and trait system, is perfect for this task. I can unambiguosly define what a float-oid is to rust as a set of traits that overload operators and other functionality.
 
-After that the only thing remaining is to follow the calculated gradient towards victory.
+After that the only thing remaining is to follow the calculated gradient towards victory, success and greatness.
+
+## Gradient following
+The field of gradient descent has been thoroughly studied to make it kind of good. The naive aproach is prone to local minima and wasted time, in order to tacle this problems many gradient descent optimizers exist. j.a.i.m.e implements a few, more implementations are very very welcome! At this point the following optimizers are aviable:
+
+- In house naive asymptotic step gradient (AsymptoticGradientDescentTrainer). It will move the parameters towards the gradient direction some amount that decreases the cost. It will reduce the size as needed. This optimizer has the advantage of convergence.
+
+- ADAM optimizer, best explained over in [this wikipedia page](https://en.wikipedia.org/wiki/Stochastic_gradient_descent#Adam), it takes into account the previous steps to nugde the current step. It provides some protection towards local minima.
+
+- **WIP**: Genetic optimizer 
+- **WIP**: WOA: https://www.geeksforgeeks.org/whale-optimization-algorithm-woa/ https://www.sciencedirect.com/science/article/abs/pii/S0952197621003997
+- **WIP**: Analitical optimizer : resolve the gradient equation to find the values that make it cero
 
 # Usage Documentation
 
