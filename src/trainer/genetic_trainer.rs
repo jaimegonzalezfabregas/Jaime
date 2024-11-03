@@ -174,7 +174,7 @@ impl<
 
             for j in 0..(GROUTH_FACTOR) {
                 full_population
-                    .push(self.population[i].mutate(&self.param_translator, learning_rate))
+                    .push(self.population[i].mutate(&self.param_translator, learning_rate / j as f32))
             }
         }
 
