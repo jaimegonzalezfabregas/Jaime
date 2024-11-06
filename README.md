@@ -29,7 +29,7 @@ To make sure this crate was as usable and performant as posible I've also implem
 - [Hello world](https://github.com/jaimegonzalezfabregas/jaime_hello_world)
 - [Polinomial deduction](https://github.com/jaimegonzalezfabregas/jaime_polinomial)
 - [Voronoi Image Aproximator](https://github.com/jaimegonzalezfabregas/jaime_voronoi_image_aproximator)
-- Xor neuronal network (Comming soon)
+- [XOR neuronal network](https://github.com/jaimegonzalezfabregas/jaime_xor_perceptron)
 - [MNIST neuronal network](https://github.com/jaimegonzalezfabregas/jaime_mnist_perceptron)
 
 - **WIP** Asteroid shape deduction
@@ -53,7 +53,7 @@ The field of gradient descent has been thoroughly studied to make it kind of goo
 
 - ADAM optimizer, best explained over in [this wikipedia page](https://en.wikipedia.org/wiki/Stochastic_gradient_descent#Adam), it takes into account the previous steps to nugde the current step. It provides some protection towards local minima.
 
-- **WIP**: Genetic optimizer 
+- Genetic optimizer, [explained here](https://en.wikipedia.org/wiki/Evolutionary_algorithm) allows to train non smooth cost functions, at the cost of poor eficiency. 
 - **WIP**: WOA: https://www.geeksforgeeks.org/whale-optimization-algorithm-woa/ https://www.sciencedirect.com/science/article/abs/pii/S0952197621003997
 - **WIP**: Analitical optimizer : resolve the gradient equation to find the values that make it cero
 
