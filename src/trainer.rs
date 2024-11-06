@@ -11,7 +11,6 @@ use std::fmt::Debug;
 pub mod adam_trainer;
 pub mod asymptotic_gradient_descent_trainer;
 pub mod genetic_trainer;
-mod directed_genetic_trainer;
 
 /// A data point holds the desired output for a given input. A colection of datapoints is a dataset. A dataset defines the desired behabiour of the trainable model.
 
