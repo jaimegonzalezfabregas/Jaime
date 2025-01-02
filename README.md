@@ -29,9 +29,10 @@ To make sure this crate was as usable and performant as posible I've also implem
 - [Hello world](https://github.com/jaimegonzalezfabregas/jaime_hello_world)
 - [Polinomial deduction](https://github.com/jaimegonzalezfabregas/jaime_polinomial)
 - [Voronoi Image Aproximator](https://github.com/jaimegonzalezfabregas/jaime_voronoi_image_aproximator)
-- Xor neuronal network (Comming soon)
+- [Xor neuronal network](https://github.com/jaimegonzalezfabregas/jaime_xor_perceptron)
 - [MNIST neuronal network](https://github.com/jaimegonzalezfabregas/jaime_mnist_perceptron)
 
+- **WIP** Jansen's linkage optimization (comming soon :D)
 - **WIP** Asteroid shape deduction
 - **WIP** Optical lens designer
 - **WIP** Path optimization
