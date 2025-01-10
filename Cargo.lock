@@ -100,7 +100,7 @@ dependencies = [
 
 [[package]]
 name = "jaime"
-version = "0.1.7"
+version = "2.1.0"
 dependencies = [
  "indicatif",
  "rand",
