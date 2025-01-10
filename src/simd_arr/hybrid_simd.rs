@@ -1,7 +1,7 @@
 use std::ops::{Index, IndexMut};
 
 use super::{dense_simd::DenseSimd, sparse_simd::VecSparseSimd, SimdArr};
-/// INTERNAL an implementation of SimdArr that combines the benefits of the linear time over the non cero elements of sparse_simd and the lack of overhead of the dense_simd. 
+/// INTERNAL an implementation of SimdArr that combines the benefits of the linear time over the non cero elements of sparse_simd and the lack of overhead of the dense_simd.
 /// - The generic SIZE defines how many values is sotores
 /// - The generic CRITICALITY defines how many non cero values will trigger a translation from the sparse representation to the dense representation
 #[derive(Clone, Debug)]
@@ -9,6 +9,9 @@ pub enum HybridSimd<const SIZE: usize, const CRITIALITY: usize> {
     Dense(Box<DenseSimd<SIZE>>),
     Sparse(VecSparseSimd<CRITIALITY, SIZE>),
 }
+
+/// Helper 0-data type to pass a generic const value in a more convenient way. It is used to define when the hybrid SimdArr goes from storing the data sparsely to storing the data densely.
+pub struct CriticalityCue<const CRITICALITY: usize>();
 
 impl<const S: usize, const C: usize> SimdArr<S> for HybridSimd<S, C> {
     fn new_from_array(arr: [f32; S]) -> Self {
