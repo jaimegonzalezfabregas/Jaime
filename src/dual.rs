@@ -5,13 +5,17 @@ pub mod multiply;
 pub mod substraction;
 mod tests;
 
+use std::array;
+
+use rayon::array;
+
 use crate::simd_arr::SimdArr;
 
 /// The internal float-oid that implements forward mode automatic diferentiation. It implements many of the traits a float number would, that way you can use it in its place on a generic function. This is an internal data structure, if you are using it on your code its likely you are doing something wrong.
 /// - The generic P is the ammount of parameters the model needs.
 /// - The generic S is the SimdArr implementation that will be used as the dual part
-/// The dual part of the dual number is not a single float, but an array of them. This is because we need to keep track of many derivatives for each of the parameters of the model. When the parameters are inputed in the model their dual part is set to all 0.0 but a single 1.0 in the position matching their index. 
-/// 
+/// The dual part of the dual number is not a single float, but an array of them. This is because we need to keep track of many derivatives for each of the parameters of the model. When the parameters are inputed in the model their dual part is set to all 0.0 but a single 1.0 in the position matching their index.
+///
 /// Dual numbers are used throughout the full gradient computation. From the input of the model to the cost calculation. That way the cost's dual array will contain the gradient, meaning, the partial derivative of the cost function for the nth parameter in the nth position of the array.
 
 #[derive(Clone, Debug)]
@@ -27,9 +31,9 @@ impl<const P: usize, S: SimdArr<P>> From<f32> for Dual<P, S> {
 }
 
 impl<const P: usize, S: SimdArr<P>> Dual<P, S> {
-    pub fn new_param(real: f32, i: usize) -> Dual<P, S> {
+    pub fn new_param<X: Into<f32>>(real: X, i: usize) -> Dual<P, S> {
         Self {
-            real: real,
+            real: real.into(),
             sigma: S::new_from_value_and_pos(1., i),
         }
     }
@@ -39,8 +43,8 @@ impl<const P: usize, S: SimdArr<P>> Dual<P, S> {
         self.sigma.check_nan();
     }
 
-    pub(crate) fn set_real(&mut self, val: f32) {
-        self.real = val
+    pub(crate) fn set_real<X: Into<f32>>(&mut self, val: X) {
+        self.real = val.into()
     }
 
     pub fn zero() -> Self {
@@ -58,16 +62,16 @@ impl<const P: usize, S: SimdArr<P>> Dual<P, S> {
         self.real
     }
 
-    pub fn new(real: f32) -> Self {
+    pub fn new<X: Into<f32>>(real: X) -> Self {
         let mut ret = Self::zero();
-        ret.real = real;
+        ret.real = real.into();
         ret
     }
 
-    pub fn new_full(real: f32, sigma: [f32; P]) -> Self {
+    pub fn new_full<X: Into<f32> + Copy>(real: X, sigma: [X; P]) -> Self {
         Self {
-            real,
-            sigma: SimdArr::new_from_array(sigma),
+            real: real.into(),
+            sigma: SimdArr::new_from_array(array::from_fn(|i| sigma[i].into())),
         }
     }
 }
