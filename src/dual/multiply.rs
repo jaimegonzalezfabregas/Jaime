@@ -1,4 +1,4 @@
-use std::ops::Mul;
+use std::ops::{Mul, MulAssign};
 
 use crate::simd_arr::SimdArr;
 
@@ -28,5 +28,16 @@ impl<const P: usize, S: SimdArr<P>> Mul<f32> for Dual<P, S> {
         self.sigma.multiply(rhs);
 
         check_nan(self)
+    }
+}
+
+impl<const P: usize, S: SimdArr<P>> MulAssign<Dual<P, S>> for Dual<P, S> {
+    fn mul_assign(&mut self, mut rhs: Self) {
+        self.sigma.multiply(rhs.real);
+        rhs.sigma.multiply(self.real);
+
+        self.real *= rhs.real;
+
+        self.sigma.acumulate(&rhs.sigma);
     }
 }
