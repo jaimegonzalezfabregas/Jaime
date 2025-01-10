@@ -1,4 +1,4 @@
-use std::ops::Add;
+use std::ops::{Add, AddAssign};
 
 use crate::simd_arr::SimdArr;
 
@@ -22,5 +22,12 @@ impl<const P: usize, S: SimdArr<P>> Add<f32> for Dual<P, S> {
         self.real += rhs;
 
         check_nan(self)
+    }
+}
+
+impl<const P: usize, S: SimdArr<P>> AddAssign<Dual<P, S>> for Dual<P, S> {
+    fn add_assign(&mut self, rhs: Self) {
+        self.real += rhs.real;
+        self.sigma.acumulate(&rhs.sigma);
     }
 }

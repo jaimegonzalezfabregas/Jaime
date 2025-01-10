@@ -1,4 +1,4 @@
-use std::ops::Sub;
+use std::ops::{Sub, SubAssign};
 
 use crate::simd_arr::SimdArr;
 
@@ -23,5 +23,13 @@ impl<const P: usize, S: SimdArr<P>> Sub<f32> for Dual<P, S> {
         self.real -= rhs;
 
         check_nan(self)
+    }
+}
+
+impl<const P: usize, S: SimdArr<P>> SubAssign<Dual<P, S>> for Dual<P, S> {
+    fn sub_assign(&mut self, mut rhs: Self) {
+        self.real -= &rhs.real;
+        rhs.sigma.neg();
+        self.sigma.acumulate(&rhs.sigma);
     }
 }

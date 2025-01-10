@@ -1,4 +1,4 @@
-use std::ops::Div;
+use std::ops::{Div, DivAssign};
 
 use crate::simd_arr::SimdArr;
 
@@ -31,5 +31,19 @@ impl<const P: usize, S: SimdArr<P>> Div<f32> for Dual<P, S> {
         self.sigma.multiply(1. / rhs);
 
         check_nan(self)
+    }
+}
+
+impl<const P: usize, S: SimdArr<P>> DivAssign<Dual<P, S>> for Dual<P, S> {
+    fn div_assign(&mut self, mut rhs: Self) {
+        self.sigma.multiply(rhs.real);
+        rhs.sigma.multiply(self.real);
+
+        rhs.sigma.neg();
+        self.sigma.acumulate(&rhs.sigma);
+
+        self.sigma.multiply(1. / (rhs.real * rhs.real));
+
+        self.real /= rhs.real;
     }
 }

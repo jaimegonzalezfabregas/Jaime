@@ -110,6 +110,7 @@ impl<const P: usize, S: SimdArr<P>> ExtendedArithmetic for Dual<P, S> {
         }
     }
 
+    
     fn accumulate(&mut self, x: &Dual<P, S>) {
         self.real += x.real;
         self.sigma.acumulate(&x.sigma);

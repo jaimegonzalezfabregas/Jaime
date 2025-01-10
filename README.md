@@ -32,9 +32,11 @@ To make sure this crate was as usable and performant as posible I've also implem
 - [XOR neuronal network](https://github.com/jaimegonzalezfabregas/jaime_xor_perceptron)
 - [MNIST neuronal network](https://github.com/jaimegonzalezfabregas/jaime_mnist_perceptron)
 
+- **WIP** Jansen's linkage optimization (comming soon :D)
 - **WIP** Asteroid shape deduction
+- **WIP** Optical lens designer
+- **WIP** Path optimization
 
-If you belive you understanding of what my crate does is clear I encourage you to study the voronoi image aproximator.
 
 # Geeky internal wizardry
 
