@@ -20,8 +20,8 @@ mod dual_tests {
         let mut rng = ChaCha8Rng::seed_from_u64(2);
 
         for _ in 0..1000 {
-            let scalar_a = rng.gen();
-            let scalar_b = rng.gen();
+            let scalar_a: f32 = rng.gen();
+            let scalar_b: f32 = rng.gen();
 
             let a: Dual<4, HybridSimd<4, 4>> = Dual::new(scalar_a);
             let b: Dual<4, HybridSimd<4, 4>> = Dual::new(scalar_b);

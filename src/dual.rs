@@ -7,8 +7,6 @@ mod tests;
 
 use std::array;
 
-use rayon::array;
-
 use crate::simd_arr::SimdArr;
 
 /// The internal float-oid that implements forward mode automatic diferentiation. It implements many of the traits a float number would, that way you can use it in its place on a generic function. This is an internal data structure, if you are using it on your code its likely you are doing something wrong.
