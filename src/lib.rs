@@ -83,6 +83,7 @@ pub mod dual;
 pub mod simd_arr;
 /// User facing gradient descent implementation
 pub mod trainer;
+pub mod minimizer;
 
 /// for medium to big dense 
 pub fn set_rayon_stack() {

@@ -2,9 +2,8 @@ use std::array;
 use std::time::Instant;
 
 use rand::Rng;
-use rayon::prelude::*;
 
-use super::{dataset_cost, DataPoint, Trainer};
+use super::Minimizer;
 
 #[derive(Clone)]
 struct Agent<const P: usize> {
@@ -36,58 +35,28 @@ impl<const P: usize> Agent<P> {
         }
     }
 
-    pub fn calculate_cost<
-        'a,
-        'b,
-        const I: usize,
-        const O: usize,
-        const PROGRESS: bool,
-        const DEBUG: bool,
-        const PARALELIZE: bool,
-        D: IntoIterator<Item = &'b DataPoint<P, I, O>>
-            + IntoParallelIterator<Item = &'a DataPoint<P, I, O>>
-            + Clone,
-        ExtraData: Clone + Sync,
-        F: Fn(&[f32; P], &[f32; I], &ExtraData) -> [f32; O] + Sync,
-    >(
+    pub fn calculate_cost<ExtraData: Clone + Sync, F: Fn(&[f32; P], &ExtraData) -> f32 + Sync>(
         &mut self,
-        dataset: D,
-        dataset_len: usize,
-        model: F,
+        cost: F,
         extra_data: &ExtraData,
     ) {
         if let None = self.cost {
-            self.cost = Some(dataset_cost::<
-                PROGRESS,
-                DEBUG,
-                PARALELIZE,
-                _,
-                _,
-                _,
-                _,
-                _,
-                _,
-                _,
-            >(
-                dataset, dataset_len, &self.parameters, model, extra_data
-            ))
+            self.cost = Some(cost(&self.parameters, extra_data))
         }
     }
 }
 
 /// The GeneticTrainer struct manages the training lifecycle using a evolutionary genetic algorithm
 #[derive(Clone)]
-pub struct GeneticTrainer<
+pub struct GeneticMinimizer<
     const P: usize,
-    const I: usize,
-    const O: usize,
     const GENERATION_SURVIVORS: usize,
     const GROUTH_FACTOR: usize,
     ExtraData: Sync + Clone,
-    F: Fn(&[f32; P], &[f32; I], &ExtraData) -> [f32; O] + Sync + Clone,
+    F: Fn(&[f32; P], &ExtraData) -> f32 + Sync + Clone,
     ParamTranslate: Fn(&[f32; P], &[f32; P]) -> [f32; P] + Clone,
 > {
-    model: F,
+    cost: F,
     population: Vec<Agent<P>>,
     param_translator: ParamTranslate,
     extra_data: ExtraData,
@@ -100,14 +69,12 @@ pub struct GeneticTrainer<
 
 impl<
         const P: usize,
-        const I: usize,
-        const O: usize,
         const GENERATION_SURVIVORS: usize,
         const GROUTH_FACTOR: usize,
         ExtraData: Sync + Clone,
-        F: Fn(&[f32; P], &[f32; I], &ExtraData) -> [f32; O] + Sync + Clone,
+        F: Fn(&[f32; P], &ExtraData) -> f32 + Sync + Clone,
         ParamTranslate: Fn(&[f32; P], &[f32; P]) -> [f32; P] + Clone,
-    > GeneticTrainer<P, I, O, GENERATION_SURVIVORS, GROUTH_FACTOR, ExtraData, F, ParamTranslate>
+    > GeneticMinimizer<P, GENERATION_SURVIVORS, GROUTH_FACTOR, ExtraData, F, ParamTranslate>
 {
     pub fn new(
         trainable: F,
@@ -117,7 +84,7 @@ impl<
         max_cost_stagnation_time: usize,
     ) -> Self {
         Self {
-            model: trainable,
+            cost: trainable,
             population: vec![Agent::new(); GENERATION_SURVIVORS],
             param_translator,
             extra_data,
@@ -132,39 +99,19 @@ impl<
 
 impl<
         const P: usize,
-        const I: usize,
-        const O: usize,
         const GENERATION_SURVIVORS: usize,
         const GROUTH_FACTOR: usize,
         ExtraData: Sync + Clone,
-        F: Fn(&[f32; P], &[f32; I], &ExtraData) -> [f32; O] + Sync + Clone,
+        F: Fn(&[f32; P], &ExtraData) -> f32 + Sync + Clone,
         ParamTranslate: Fn(&[f32; P], &[f32; P]) -> [f32; P] + Clone,
-    > Trainer<P, I, O>
-    for GeneticTrainer<P, I, O, GENERATION_SURVIVORS, GROUTH_FACTOR, ExtraData, F, ParamTranslate>
+    > Minimizer<P>
+    for GeneticMinimizer<P, GENERATION_SURVIVORS, GROUTH_FACTOR, ExtraData, F, ParamTranslate>
 {
     fn get_last_cost(&self) -> Option<f32> {
         self.last_cost
     }
 
-    fn train_step<
-        'a,
-        'b,
-        const PARALELIZE: bool,
-        const VERBOSE: bool,
-        D: IntoIterator<Item = &'b DataPoint<P, I, O>>
-            + IntoParallelIterator<Item = &'a DataPoint<P, I, O>>
-            + Clone,
-        E: IntoIterator<Item = &'b DataPoint<P, I, O>>
-            + IntoParallelIterator<Item = &'a DataPoint<P, I, O>>
-            + Clone,
-    >(
-        &mut self,
-        _: D,
-        full_dataset: E,
-        _: usize,
-        full_dataset_len: usize,
-        learning_rate: f32,
-    ) {
+    fn train_step<const VERBOSE: bool>(&mut self, learning_rate: f32) {
         let t0 = Instant::now();
 
         let mut full_population: Vec<Agent<P>> = vec![];
@@ -179,21 +126,11 @@ impl<
             }
         }
 
-        full_population.iter_mut().for_each(|e| {
-            e.calculate_cost::<_, _, false, false, false, _, _, _>(
-                full_dataset.clone(),
-                full_dataset_len,
-                &self.model,
-                &self.extra_data,
-            )
-        });
+        full_population
+            .iter_mut()
+            .for_each(|e| e.calculate_cost::<_, _>(&self.cost, &self.extra_data));
 
-        full_population.sort_by(|a, b| {
-            a.cost
-                .unwrap()
-                .partial_cmp(&b.cost.unwrap())
-                .unwrap_or(std::cmp::Ordering::Equal)
-        });
+        full_population.sort_by(|a, b| a.cost.unwrap().partial_cmp(&b.cost.unwrap()).unwrap());
 
         let new_cost = full_population[0].cost.unwrap();
 
@@ -234,10 +171,6 @@ impl<
         }
     }
 
-    fn eval(&self, input: &[f32; I]) -> [f32; O] {
-        (self.model)(&self.get_model_params(), input, &self.extra_data)
-    }
-
     fn get_model_params(&self) -> [f32; P] {
         self.population[0].parameters
     }
@@ -248,7 +181,7 @@ impl<
             cost: None,
         };
 
-        for i in 0..(GENERATION_SURVIVORS - 1) {
+        for i in 1..(GENERATION_SURVIVORS - 1) {
             self.population[i] = self.population[0].mutate(&self.param_translator, 1.);
         }
     }

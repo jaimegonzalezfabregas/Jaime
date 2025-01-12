@@ -20,6 +20,7 @@ pub struct DataPoint<const P: usize, const I: usize, const O: usize> {
     pub output: [f32; O],
 }
 
+/// Note, trainers cant reuse the minimizer implementation without forgoing the hability of swaping datasets mid run. To allow that, minimizers should allow to change the cost function midrun. As some minimizers will store multiple cost function versions while others wont that funcionality cant be unified in the trait. Furthermore functions in rust dont work as simple function pointers, adding a further level of complexity. Code repetition is the cost to pay to get all the funtionality.
 pub trait Trainer<const P: usize, const I: usize, const O: usize> {
     /// Will return the last computed cost (if any has been computed yet)
     fn get_last_cost(&self) -> Option<f32>;

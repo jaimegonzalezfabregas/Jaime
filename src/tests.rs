@@ -23,7 +23,7 @@ mod polinomial_test {
                 polinomial::<6, _>,
                 default_param_translator,
                 (),
-                0.0001,
+                0.01,
                 10,
             ),
             0.1,
