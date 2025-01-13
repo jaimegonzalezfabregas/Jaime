@@ -12,7 +12,6 @@ keywords = ["ai", "statistics"]
 [toolchain]
 channel = "nightly"
 
-
 [dependencies]
 rand = "0.8.5"
 rayon = "1.10.0"

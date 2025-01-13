@@ -3,6 +3,7 @@ use std::time::Instant;
 
 use crate::dual::Dual;
 use crate::simd_arr::dense_simd::DenseSimd;
+use crate::simd_arr::dense_simd_nan_protected::DenseSimdNaNProtected;
 use crate::simd_arr::hybrid_simd::{CriticalityCue, HybridSimd};
 use crate::simd_arr::SimdArr;
 use rand::{Rng, SeedableRng};
@@ -44,6 +45,43 @@ impl<
     > AdamMinimizer<P, ExtraData, DenseSimd<P>, FG, F, ParamTranslate>
 {
     pub fn new_dense(
+        trainable: F,
+        trainable_gradient: FG,
+        param_translator: ParamTranslate,
+        extra_data: ExtraData,
+        cost_stagnation_threshold: f32,
+        max_cost_stagnation_time: usize,
+    ) -> Self {
+        let mut rng = ChaCha8Rng::seed_from_u64(2);
+
+        Self {
+            cost_gradient: trainable_gradient,
+            cost: trainable,
+            params: array::from_fn(|i| Dual::new_param(rng.gen::<f32>() - 0.5, i)),
+            m: [0.0; P],
+            v: [0.0; P],
+            t: 0,
+            param_translator,
+            extra_data,
+            last_cost: None,
+            cost_stagnation_value: None,
+            cost_stagnation_threshold,
+            cost_stagnation_time: 0,
+            max_cost_stagnation_time,
+        }
+    }
+}
+
+
+impl<
+        const P: usize,
+        ExtraData: Sync + Clone,
+        FG: Fn(&[Dual<P, DenseSimdNaNProtected<P>>; P], &ExtraData) -> Dual<P, DenseSimdNaNProtected<P>> + Sync + Clone,
+        F: Fn(&[f32; P], &ExtraData) -> f32 + Sync + Clone,
+        ParamTranslate: Fn(&[f32; P], &[f32; P]) -> [f32; P] + Clone,
+    > AdamMinimizer<P, ExtraData, DenseSimdNaNProtected<P>, FG, F, ParamTranslate>
+{
+    pub fn new_dense_nan_protected(
         trainable: F,
         trainable_gradient: FG,
         param_translator: ParamTranslate,

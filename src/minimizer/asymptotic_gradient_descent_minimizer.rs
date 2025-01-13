@@ -3,6 +3,7 @@ use std::time::Instant;
 
 use crate::dual::Dual;
 use crate::simd_arr::dense_simd::DenseSimd;
+use crate::simd_arr::dense_simd_nan_protected::DenseSimdNaNProtected;
 use crate::simd_arr::hybrid_simd::{CriticalityCue, HybridSimd};
 use crate::simd_arr::SimdArr;
 use rand::{Rng, SeedableRng};
@@ -42,6 +43,48 @@ impl<
 {
     /// Creates a Trainer instance that will use dense representation for the dual part. This can be ineficient for big parameter models because many of the elements of the dual part will be 0. This may be usefull for very small parameter numbers, but for any serious endeavor I would recomend using the new_hybrid function.
     pub fn new_dense(
+        trainable: F,
+        trainable_gradient: FG,
+        param_translator: ParamTranslate,
+        extra_data: ExtraData,
+    ) -> Self {
+        let mut rng = ChaCha8Rng::seed_from_u64(2);
+
+        Self {
+            cost_gradient: trainable_gradient,
+            cost: trainable,
+            params: array::from_fn(|i| Dual::new_param(rng.gen::<f32>() - 0.5, i)),
+            param_translator,
+            extra_data,
+            last_cost: None,
+            found_local_minima: false,
+        }
+    }
+}
+
+impl<
+        const P: usize,
+        ExtraData: Sync + Clone,
+        FG: Fn(
+                &[Dual<P, DenseSimdNaNProtected<P>>; P],
+                &ExtraData,
+            ) -> Dual<P, DenseSimdNaNProtected<P>>
+            + Sync
+            + Clone,
+        F: Fn(&[f32; P], &ExtraData) -> f32 + Sync + Clone,
+        ParamTranslate: Fn(&[f32; P], &[f32; P]) -> [f32; P] + Clone,
+    >
+    AsymptoticGradientDescentMinimizer<
+        P,
+        ExtraData,
+        DenseSimdNaNProtected<P>,
+        FG,
+        F,
+        ParamTranslate,
+    >
+{
+    /// Creates a Trainer instance that will use dense representation for the dual part. This can be ineficient for big parameter models because many of the elements of the dual part will be 0. This may be usefull for very small parameter numbers, but for any serious endeavor I would recomend using the new_hybrid function.
+    pub fn new_dense_nan_protected(
         trainable: F,
         trainable_gradient: FG,
         param_translator: ParamTranslate,
@@ -132,13 +175,25 @@ impl<
 
         let mut factor = learning_rate;
 
-        let raw_gradient = cost.get_gradient();
-        let gradient_size: f32 = f32::max(
-            raw_gradient.iter().fold(0., |acc, elm| acc + (elm * elm)),
+        let mut unit_gradient = cost.get_gradient();
+        let mut gradient_size: f32 = f32::max(
+            unit_gradient.iter().fold(0., |acc, elm| acc + (elm * elm)).sqrt(),
             1e-30,
         );
 
-        let unit_gradient = array::from_fn(|i| raw_gradient[i] / gradient_size.sqrt());
+        while !gradient_size.is_finite() {
+            unit_gradient = unit_gradient.map(|x| x / 2.);
+
+            gradient_size = f32::max(
+                unit_gradient.iter().fold(0., |acc, elm| acc + (elm * elm)).sqrt(),
+                1e-30,
+            );
+        }
+
+        unit_gradient = unit_gradient.map(|x| x / gradient_size);
+
+        println!("unit_gradient: {:?}", unit_gradient);
+
         let og_parameters = array::from_fn(|i| self.params[i].get_real());
 
         while {

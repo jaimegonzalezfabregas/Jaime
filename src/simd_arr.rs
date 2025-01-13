@@ -6,6 +6,7 @@ use std::{
 pub mod dense_simd;
 pub mod hybrid_simd;
 mod sparse_simd;
+pub mod dense_simd_nan_protected;
 
 /// INTERNAL a float array with functions to treat it as a single number (applying the operations to each position)
 
