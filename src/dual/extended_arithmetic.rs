@@ -9,6 +9,8 @@ pub trait ExtendedArithmetic {
 
     fn exp(self) -> Self;
 
+    fn ln(self) -> Self;
+
     fn pow2(self) -> Self;
 
     fn abs(self) -> Self;
@@ -19,6 +21,7 @@ pub trait ExtendedArithmetic {
 
     fn sqrt_on_mut(&mut self);
     fn exp_on_mut(&mut self);
+    fn ln_on_mut(&mut self);
     fn neg_on_mut(&mut self);
     fn pow2_on_mut(&mut self);
     fn abs_on_mut(&mut self);
@@ -41,6 +44,11 @@ impl<const P: usize, S: SimdArr<P>> ExtendedArithmetic for Dual<P, S> {
 
     fn exp(mut self) -> Self {
         self.exp_on_mut();
+        self
+    }
+
+    fn ln(mut self) -> Self {
+        self.ln_on_mut();
         self
     }
 
@@ -73,6 +81,11 @@ impl<const P: usize, S: SimdArr<P>> ExtendedArithmetic for Dual<P, S> {
     fn exp_on_mut(&mut self) {
         self.real = self.real.exp();
         self.sigma.multiply(self.real);
+    }
+
+    fn ln_on_mut(&mut self) {
+        self.real = self.real.ln();
+        self.sigma.multiply(1. / self.real);
     }
 
     fn neg_on_mut(&mut self) {
@@ -110,7 +123,6 @@ impl<const P: usize, S: SimdArr<P>> ExtendedArithmetic for Dual<P, S> {
         }
     }
 
-    
     fn accumulate(&mut self, x: &Dual<P, S>) {
         self.real += x.real;
         self.sigma.acumulate(&x.sigma);
@@ -129,6 +141,10 @@ impl ExtendedArithmetic for f32 {
 
     fn exp(self) -> Self {
         self.exp()
+    }
+
+    fn ln(self) -> Self {
+        self.ln()
     }
 
     fn pow2(self) -> Self {
@@ -158,6 +174,10 @@ impl ExtendedArithmetic for f32 {
 
     fn exp_on_mut(&mut self) {
         *self = self.exp()
+    }
+
+    fn ln_on_mut(&mut self) {
+        *self = self.ln()
     }
 
     fn pow2_on_mut(&mut self) {
